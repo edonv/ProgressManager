@@ -16,6 +16,10 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
         childTasks[childKey]
     }
     
+    /// Creates a new ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
+    /// - Parameters:
+    ///   - childTaskUnitCounts: A `Dictionary` describing how many units need to be completed within each child task.
+    ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
     public init(childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
         let totalParentUnitCount: Int64 = childTaskUnitCounts.reduce(into: 0) { updatingUnitCount, countKVP in
             updatingUnitCount += childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value
@@ -30,6 +34,12 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
         }
     }
     
+    /// Creates a new ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
+    ///
+    /// - Note: There is no practical difference between this initializer and ``init(childTaskUnitCounts:childTaskWeightings:)``. The only difference is that because you enter the generic `ChildTaskKey` type in this one, you can use the keys with dot syntax to get enum cases or constants when filling in the other parameters.
+    /// - Parameters:
+    ///   - childProgressCounts: A `Dictionary` describing how many of each child task there should be.
+    ///   - childTaskUnitCountsInParent: If `nil`, defaults to a weight of `1` for each child task. The tasks of any missing keys default to a weighting of `1` as well.
     public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
         self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParent)
     }
@@ -38,14 +48,27 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
 // MARK: - Updating Child Task Progress
 
 extension ProgressManager {
+    /// Sets the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key to the provided value.
+    /// - Parameters:
+    ///   - completedUnitCount: The new count of completed units for the child task associated with the provided key.
+    ///   - key: The key of a child task to update.
     public func setCompletedUnitCount(_ completedUnitCount: Int64, forChildTask key: ChildTaskKey) {
         childTasks[key]?.completedUnitCount = completedUnitCount
     }
     
+    /// Updates the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key by adding the provided value to the current value.
+    /// - Parameters:
+    ///   - newlyCompletedUnitCountToAdd: A count of completed units to add to the current value of the child task associated with the provided key.
+    ///   - key: The key of a child task to update.
     public func addToCompletedUnitCount(_ newlyCompletedUnitCountToAdd: Int64, forChildTask key: ChildTaskKey) {
         childTasks[key]?.completedUnitCount += newlyCompletedUnitCountToAdd
     }
     
+    /// Updates the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key by calling the provided closure.
+    /// - Parameters:
+    ///   - key: The key of a child task to update.
+    ///   - updateClosure: A closure that should return an updated current count of completed units.
+    ///   - currentValue: The current count of completed units.
     public func updateCompletedUnitCount(forChildTask key: ChildTaskKey, updateClosure: (_ currentValue: Int64) -> Int64) {
         guard let childProgress = childTasks[key] else { return }
         childProgress.completedUnitCount = updateClosure(childProgress.completedUnitCount)
@@ -57,24 +80,36 @@ extension ProgressManager: Sendable where ChildTaskKey: Sendable {}
 // MARK: - Subscribing to Changes in Parent/Child Progress
 
 extension ProgressManager {
+    /// Publishes changes to [`fractionCompleted`](https://developer.apple.com/documentation/foundation/progress/1408579-fractioncompleted) on ``parent``.
+    ///
+    /// - Note: This publisher updates continuously as work progresses for all child tasks.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public var fractionCompletedPublisher: AnyPublisher<Double, Never> {
         parent.publisher(for: \.fractionCompleted)
             .eraseToAnyPublisher()
     }
     
+    /// Publishes changes to [`totalUnitCount`](https://developer.apple.com/documentation/foundation/progress/1410940-totalunitcount) on ``parent``.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public var totalUnitCountPublisher: AnyPublisher<Int64, Never> {
         parent.publisher(for: \.totalUnitCount)
             .eraseToAnyPublisher()
     }
     
+    /// Publishes changes to [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) on ``parent``.
+    ///
+    /// - Note: This publisher only updates when each child task is `100%` complete.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public var completedUnitCountPublisher: AnyPublisher<Int64, Never> {
         parent.publisher(for: \.completedUnitCount)
             .eraseToAnyPublisher()
     }
     
+    /// Publishes changes to [`fractionCompleted`](https://developer.apple.com/documentation/foundation/progress/1408579-fractioncompleted) on the child task (from ``childTasks``) associated with `childKey` (if there is one).
+    ///
+    /// If there isn't a child task matching the key, the returned `Publisher` will return `nil` then finish.
+    /// - Note: This publisher updates continuously as work progresses for the child task.
+    /// - Parameter childKey: The key of a child task from which to get a publisher (if such a child task exists).
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public func fractionCompletedPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Double?, Never> {
         if let child = childTasks[childKey] {
@@ -87,6 +122,10 @@ extension ProgressManager {
         }
     }
     
+    /// Publishes changes to [`totalUnitCount`](https://developer.apple.com/documentation/foundation/progress/1410940-totalunitcount) on the child task (from ``childTasks``) associated with `childKey` (if there is one).
+    ///
+    /// If there isn't a child task matching the key, the returned `Publisher` will return `nil` then finish.
+    /// - Parameter childKey: The key of a child task from which to get a publisher (if such a child task exists).
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public func totalUnitCountPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Int64?, Never> {
         if let child = childTasks[childKey] {
@@ -99,6 +138,11 @@ extension ProgressManager {
         }
     }
     
+    /// Publishes changes to [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) on the child task (from ``childTasks``) associated with `childKey` (if there is one).
+    ///
+    /// If there isn't a child task matching the key, the returned `Publisher` will return `nil` then finish.
+    /// - Note: This publisher only updates when the child task is `100%` complete.
+    /// - Parameter childKey: The key of a child task from which to get a publisher (if such a child task exists).
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public func completedUnitCountPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Int64?, Never> {
         if let child = childTasks[childKey] {
