@@ -48,6 +48,8 @@ extension ProgressManager {
     }
 }
 
+extension ProgressManager: Sendable where ChildTaskKey: Sendable {}
+
 // MARK: - Subscribing to Changes in Parent/Child Progress
 
 extension ProgressManager {
