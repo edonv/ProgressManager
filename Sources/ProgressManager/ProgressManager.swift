@@ -36,7 +36,7 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     
     /// Creates a new ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
     ///
-    /// - Note: There is no practical difference between this initializer and ``init(childTaskUnitCounts:childTaskWeightings:)``. The only difference is that because you enter the generic `ChildTaskKey` type in this one, you can use the keys with dot syntax to get enum cases or constants when filling in the other parameters.
+    /// - Note: There is no practical difference between this initializer and ``init(childTaskUnitCounts:childTaskUnitCountsInParent:)``. The only difference is that because you enter the generic `ChildTaskKey` type in this one, you can use the keys with dot syntax to get enum cases or constants when filling in the other parameters.
     /// - Parameters:
     ///   - childProgressCounts: A `Dictionary` describing how many of each child task there should be.
     ///   - childTaskUnitCountsInParent: If `nil`, defaults to a weight of `1` for each child task. The tasks of any missing keys default to a weighting of `1` as well.
