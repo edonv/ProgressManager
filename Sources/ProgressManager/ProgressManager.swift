@@ -30,3 +30,20 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
         self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParent)
     }
 }
+
+// MARK: - Updating Child Task Progress
+
+extension ProgressManager {
+    public func setCompletedUnitCount(_ completedUnitCount: Int64, forChildTask key: ChildTaskKey) {
+        childTasks[key]?.completedUnitCount = completedUnitCount
+    }
+    
+    public func addToCompletedUnitCount(_ newlyCompletedUnitCountToAdd: Int64, forChildTask key: ChildTaskKey) {
+        childTasks[key]?.completedUnitCount += newlyCompletedUnitCountToAdd
+    }
+    
+    public func updateCompletedUnitCount(forChildTask key: ChildTaskKey, updateClosure: (_ currentValue: Int64) -> Int64) {
+        guard let childProgress = childTasks[key] else { return }
+        childProgress.completedUnitCount = updateClosure(childProgress.completedUnitCount)
+    }
+}
