@@ -12,6 +12,10 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     public let parent: Progress
     public let childTasks: [ChildTaskKey: Progress]
     
+    public subscript(childKey: ChildTaskKey) -> Progress? {
+        childTasks[childKey]
+    }
+    
     public init(childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
         let totalParentUnitCount: Int64 = childTaskUnitCounts.reduce(into: 0) { updatingUnitCount, countKVP in
             updatingUnitCount += childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value
