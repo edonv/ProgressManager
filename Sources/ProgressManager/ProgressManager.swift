@@ -105,3 +105,15 @@ extension ProgressManager {
         }
     }
 }
+
+extension ProgressManager: CustomStringConvertible {
+    public var description: String {
+        let parent = "Parent progress: \(parent.completedUnitCount) / \(parent.totalUnitCount)"
+        var children = childTasks.map { (key, childProgress) in
+            "Child progress (\(key)): \(childProgress.completedUnitCount) / \(childProgress.totalUnitCount)"
+        }
+        
+        children.insert(parent, at: 0)
+        return children.joined(separator: "\n")
+    }
+}
