@@ -47,3 +47,61 @@ extension ProgressManager {
         childProgress.completedUnitCount = updateClosure(childProgress.completedUnitCount)
     }
 }
+
+// MARK: - Subscribing to Changes in Parent/Child Progress
+
+extension ProgressManager {
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+    public var fractionCompletedPublisher: AnyPublisher<Double, Never> {
+        parent.publisher(for: \.fractionCompleted)
+            .eraseToAnyPublisher()
+    }
+    
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+    public var totalUnitCountPublisher: AnyPublisher<Int64, Never> {
+        parent.publisher(for: \.totalUnitCount)
+            .eraseToAnyPublisher()
+    }
+    
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+    public var completedUnitCountPublisher: AnyPublisher<Int64, Never> {
+        parent.publisher(for: \.completedUnitCount)
+            .eraseToAnyPublisher()
+    }
+    
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+    public func fractionCompletedPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Double?, Never> {
+        if let child = childTasks[childKey] {
+            child.publisher(for: \.fractionCompleted)
+                .map { $0 as Double? }
+                .eraseToAnyPublisher()
+        } else {
+            Just(nil)
+                .eraseToAnyPublisher()
+        }
+    }
+    
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+    public func totalUnitCountPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Int64?, Never> {
+        if let child = childTasks[childKey] {
+            child.publisher(for: \.totalUnitCount)
+                .map { $0 as Int64? }
+                .eraseToAnyPublisher()
+        } else {
+            Just(nil)
+                .eraseToAnyPublisher()
+        }
+    }
+    
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+    public func completedUnitCountPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Int64?, Never> {
+        if let child = childTasks[childKey] {
+            child.publisher(for: \.completedUnitCount)
+                .map { $0 as Int64? }
+                .eraseToAnyPublisher()
+        } else {
+            Just(nil)
+                .eraseToAnyPublisher()
+        }
+    }
+}
