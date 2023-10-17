@@ -25,4 +25,8 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
                                           pendingUnitCount: childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value)
         }
     }
+    
+    public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
+        self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParent)
+    }
 }
