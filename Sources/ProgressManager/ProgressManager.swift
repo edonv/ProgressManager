@@ -107,15 +107,19 @@ extension ProgressManager where ChildTaskKey: CaseIterable {
     ///   - type: The type to use as keys for ``childTasks``.
     ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to `1`. The tasks of any missing keys will similarly default to `1`.
     public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
+        // Give all child tasks a total unit count of 1
         let childTaskUnitCounts: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
             partialResult[key] = 1
         }
+        
+        // Set child tasks' associated unit count in the parent, but default to 1
         let childTaskUnitCountsInParentTweaked: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
             partialResult[key] = childTaskUnitCountsInParent?[key] ?? 1
         }
         
         self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParentTweaked)
         
+        // Set all child tasks to be complete
         for progress in childTasks.values {
             progress.completedUnitCount = 1
         }
