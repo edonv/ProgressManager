@@ -1,5 +1,8 @@
 # ProgressManager
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fedonv%2FProgressManager%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/edonv/ProgressManager)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fedonv%2FProgressManager%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/edonv/ProgressManager)
+
 `ProgressManager` is a class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) and its child tasks just a bit more straightforward and easy. Why use it? It allows for a complex but accessible way to use `Progress` for things like [`ProgressView`](https://developer.apple.com/documentation/swiftui/progressview) and [`UIProgressView`](https://developer.apple.com/documentation/uikit/uiprogressview).
 
 ## How to Use ProgressManager
