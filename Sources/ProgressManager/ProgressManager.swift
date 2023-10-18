@@ -8,10 +8,15 @@
 import Foundation
 import Combine
 
+/// A class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) objects and child `Progress` objects just a bit more straightforward and easy to work with.
 public final class ProgressManager<ChildTaskKey: Hashable> {
+    /// The primary [`Progress`](https://developer.apple.com/documentation/foundation/progress) object.
     public let parent: Progress
+    
+    /// A `Dictionary` used to store child `Progress` objects.
     public let childTasks: [ChildTaskKey: Progress]
     
+    /// An easy way to acccess the child `Progress` objects stored in ``childTasks``.
     public subscript(childKey: ChildTaskKey) -> Progress? {
         childTasks[childKey]
     }
