@@ -102,19 +102,23 @@ extension ProgressManager: Sendable where ChildTaskKey: Sendable {}
 extension ProgressManager where ChildTaskKey: CaseIterable {
     /// Creates an empty ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
     ///
-    /// This initializer creates the `ProgressManager` from all cases of `ChildTaskKey`, each child task starting with `totalUnitCount` values of `0`. ``setChildTaskTotalUnitCount(_:forChildTask:)`` can be used after the fact to set `totalUnitCount`. This initializer is intended to be used when info on child tasks might not be available yet.
+    /// This initializer creates the `ProgressManager` from all cases of `ChildTaskKey`, each child task starting with `totalUnitCount` values of `1`, as well as setting every child task as fully complete. ``setChildTaskTotalUnitCount(_:forChildTask:)`` can be used after the fact to set `totalUnitCount`. This initializer is intended to be used when info on child tasks might not be available yet.
     /// - Parameters:
     ///   - type: The type to use as keys for ``childTasks``.
     ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to `1`. The tasks of any missing keys will similarly default to `1`.
     public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
         let childTaskUnitCounts: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
-            partialResult[key] = 0
+            partialResult[key] = 1
         }
         let childTaskUnitCountsInParentTweaked: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
             partialResult[key] = childTaskUnitCountsInParent?[key] ?? 1
         }
         
         self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParentTweaked)
+        
+        for progress in childTasks.values {
+            progress.completedUnitCount = 1
+        }
     }
 }
 
