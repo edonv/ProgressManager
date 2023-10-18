@@ -45,7 +45,7 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     ///
     /// - Note: There is no practical difference between this initializer and ``init(childTaskUnitCounts:childTaskUnitCountsInParent:)``. The only difference is that because you enter the generic `ChildTaskKey` type in this one, you can use the keys with dot syntax to get enum cases or constants when filling in the other parameters.
     /// - Parameters:
-    ///   - type: An explicit definition of the generic `ChildTaskKey` to use.
+    ///   - type: The type to use as keys for ``childTasks``.
     ///   - childTaskUnitCounts: A `Dictionary` describing how many of each child task there should be.
     ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
     public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
