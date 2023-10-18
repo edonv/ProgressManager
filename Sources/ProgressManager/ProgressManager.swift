@@ -17,6 +17,8 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     public let childTasks: [ChildTaskKey: Progress]
     
     /// An easy way to acccess the child `Progress` objects stored in ``childTasks``.
+    /// - Parameter childKey: The key associated with the child `Progress` object to return.
+    /// - Returns: The child `Progress` object associated with the provided key, if there is one. Otherwise, `nil`.
     public subscript(_ childKey: ChildTaskKey) -> Progress? {
         childTasks[childKey]
     }
