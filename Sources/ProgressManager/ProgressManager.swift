@@ -47,7 +47,7 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     /// - Parameters:
     ///   - type: An explicit definition of the generic `ChildTaskKey` to use.
     ///   - childTaskUnitCounts: A `Dictionary` describing how many of each child task there should be.
-    ///   - childTaskUnitCountsInParent: If `nil`, defaults to a weight of `1` for each child task. The tasks of any missing keys default to a weighting of `1` as well.
+    ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
     public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
         self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParent)
     }
