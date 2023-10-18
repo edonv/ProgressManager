@@ -93,6 +93,8 @@ extension ProgressManager {
     }
 }
 
+// MARK: - Sendable Conformance
+
 extension ProgressManager: Sendable where ChildTaskKey: Sendable {}
 
 // MARK: - Subscribing to Changes in Parent/Child Progress
