@@ -23,6 +23,13 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
         childTasks[childKey]
     }
     
+    /// Creates a new empty `ProgressManager`.
+    /// - Parameter type: The type to use as keys for ``childTasks``.
+    public init(_ type: ChildTaskKey.Type) {
+        self.parent = Progress()
+        self.childTasks = [:]
+    }
+    
     /// Creates a new ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
     /// - Parameters:
     ///   - childTaskUnitCounts: A `Dictionary` describing how many units need to be completed within each child task.
