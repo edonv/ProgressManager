@@ -59,6 +59,7 @@ And that's it! If you need more granular control, you can access the child tasks
 
 - ``init(childTaskUnitCounts:childTaskUnitCountsInParent:)``
 - ``init(_:childTaskUnitCounts:childTaskUnitCountsInParent:)``
+- ``init(_:childTaskUnitCountsInParent:)``
 
 ### Properties
 
