@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 
 /// A class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) objects and child `Progress` objects just a bit more straightforward and easy to work with.
 public final class ProgressManager<ChildTaskKey: Hashable> {
@@ -139,6 +138,8 @@ extension ProgressManager: CustomStringConvertible {
 }
 
 // MARK: - Subscribing to Changes in Parent/Child Progress
+#if canImport(Combine)
+import Combine
 
 extension ProgressManager {
     /// Publishes changes to [`fractionCompleted`](https://developer.apple.com/documentation/foundation/progress/1408579-fractioncompleted) on ``parent``.
@@ -216,3 +217,4 @@ extension ProgressManager {
         }
     }
 }
+#endif
