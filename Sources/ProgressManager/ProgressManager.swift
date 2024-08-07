@@ -27,7 +27,10 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     /// - Parameters:
     ///   - childTaskUnitCounts: A `Dictionary` describing how many units need to be completed within each child task.
     ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
-    public init(childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
+    public init(
+        childTaskUnitCounts: [ChildTaskKey: Int64],
+        childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil
+    ) {
         let totalParentUnitCount: Int64 = childTaskUnitCounts.reduce(into: 0) { updatingUnitCount, countKVP in
             updatingUnitCount += childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value
         }
@@ -35,9 +38,11 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
         self.parent = Progress(totalUnitCount: totalParentUnitCount)
         
         self.childTasks = childTaskUnitCounts.reduce(into: [:]) { [parent] dict, countKVP in
-            dict[countKVP.key] = Progress(totalUnitCount: countKVP.value,
-                                          parent: parent,
-                                          pendingUnitCount: childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value)
+            dict[countKVP.key] = Progress(
+                totalUnitCount: countKVP.value,
+                parent: parent,
+                pendingUnitCount: childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value
+            )
         }
     }
     
@@ -48,8 +53,15 @@ public final class ProgressManager<ChildTaskKey: Hashable> {
     ///   - type: The type to use as keys for ``childTasks``.
     ///   - childTaskUnitCounts: A `Dictionary` describing how many of each child task there should be.
     ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
-    public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCounts: [ChildTaskKey: Int64], childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
-        self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParent)
+    public convenience init(
+        _ type: ChildTaskKey.Type,
+        childTaskUnitCounts: [ChildTaskKey: Int64],
+        childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil
+    ) {
+        self.init(
+            childTaskUnitCounts: childTaskUnitCounts,
+            childTaskUnitCountsInParent: childTaskUnitCountsInParent
+        )
     }
 }
 
@@ -62,7 +74,10 @@ extension ProgressManager {
     /// - Parameters:
     ///   - newChildTotalUnitCount: The new `totalUnitCount` for the child task associated with the provided key.
     ///   - key: The key of the child task whose `totalUnitCount` should be updated.
-    public func setChildTaskTotalUnitCount(_ newChildTotalUnitCount: Int64, forChildTask key: ChildTaskKey) {
+    public func setChildTaskTotalUnitCount(
+        _ newChildTotalUnitCount: Int64,
+        forChildTask key: ChildTaskKey
+    ) {
         childTasks[key]?.totalUnitCount = newChildTotalUnitCount
     }
     
@@ -70,7 +85,10 @@ extension ProgressManager {
     /// - Parameters:
     ///   - completedUnitCount: The new count of completed units for the child task associated with the provided key.
     ///   - key: The key of a child task to update.
-    public func setCompletedUnitCount(_ completedUnitCount: Int64, forChildTask key: ChildTaskKey) {
+    public func setCompletedUnitCount(
+        _ completedUnitCount: Int64,
+        forChildTask key: ChildTaskKey
+    ) {
         childTasks[key]?.completedUnitCount = completedUnitCount
     }
     
@@ -78,7 +96,10 @@ extension ProgressManager {
     /// - Parameters:
     ///   - newlyCompletedUnitCountToAdd: A count of completed units to add to the current value of the child task associated with the provided key.
     ///   - key: The key of a child task to update.
-    public func addToCompletedUnitCount(_ newlyCompletedUnitCountToAdd: Int64, forChildTask key: ChildTaskKey) {
+    public func addToCompletedUnitCount(
+        _ newlyCompletedUnitCountToAdd: Int64,
+        forChildTask key: ChildTaskKey
+    ) {
         childTasks[key]?.completedUnitCount += newlyCompletedUnitCountToAdd
     }
     
@@ -87,7 +108,10 @@ extension ProgressManager {
     ///   - key: The key of a child task to update.
     ///   - updateClosure: A closure that should return an updated current count of completed units.
     ///   - currentValue: The current count of completed units.
-    public func updateCompletedUnitCount(forChildTask key: ChildTaskKey, updateClosure: (_ currentValue: Int64) -> Int64) {
+    public func updateCompletedUnitCount(
+        forChildTask key: ChildTaskKey,
+        updateClosure: (_ currentValue: Int64) -> Int64
+    ) {
         guard let childProgress = childTasks[key] else { return }
         childProgress.completedUnitCount = updateClosure(childProgress.completedUnitCount)
     }
@@ -106,7 +130,10 @@ extension ProgressManager where ChildTaskKey: CaseIterable {
     /// - Parameters:
     ///   - type: The type to use as keys for ``childTasks``.
     ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to `1`. The tasks of any missing keys will similarly default to `1`.
-    public convenience init(_ type: ChildTaskKey.Type, childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil) {
+    public convenience init(
+        _ type: ChildTaskKey.Type,
+        childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil
+    ) {
         // Give all child tasks a total unit count of 1
         let childTaskUnitCounts: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
             partialResult[key] = 1
@@ -117,7 +144,10 @@ extension ProgressManager where ChildTaskKey: CaseIterable {
             partialResult[key] = childTaskUnitCountsInParent?[key] ?? 1
         }
         
-        self.init(childTaskUnitCounts: childTaskUnitCounts, childTaskUnitCountsInParent: childTaskUnitCountsInParentTweaked)
+        self.init(
+            childTaskUnitCounts: childTaskUnitCounts,
+            childTaskUnitCountsInParent: childTaskUnitCountsInParentTweaked
+        )
         
         // Set all child tasks to be complete
         for progress in childTasks.values {
