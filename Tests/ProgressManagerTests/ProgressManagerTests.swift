@@ -24,7 +24,7 @@ final class ProgressManagerTests: XCTestCase {
         XCTAssertEqual(dummyManager.parent.totalUnitCount, 11)
     }
     
-    func testProgresReporting() async throws {
+    func testProgressReporting() async throws {
         let fractionCompletedPub = dummyManager.fractionCompletedPublisher
             .sink { progress in
                 print("Overall progress (fraction): \(progress)")
