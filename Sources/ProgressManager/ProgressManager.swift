@@ -8,6 +8,7 @@
 import Foundation
 
 /// A class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) objects and child `Progress` objects just a bit more straightforward and easy to work with.
+@MainActor
 public final class ProgressManager<ChildTaskKey: Hashable> {
     /// The primary [`Progress`](https://developer.apple.com/documentation/foundation/progress) object.
     public let parent: Progress
