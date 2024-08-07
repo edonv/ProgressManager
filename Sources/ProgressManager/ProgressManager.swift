@@ -8,7 +8,6 @@
 import Foundation
 
 /// A class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) objects and child `Progress` objects just a bit more straightforward and easy to work with.
-@MainActor
 public final class ProgressManager<ChildTaskKey: Hashable> {
     /// The primary [`Progress`](https://developer.apple.com/documentation/foundation/progress) object.
     public let parent: Progress
@@ -74,6 +73,7 @@ extension ProgressManager {
     /// - Parameters:
     ///   - newChildTotalUnitCount: The new `totalUnitCount` for the child task associated with the provided key.
     ///   - key: The key of the child task whose `totalUnitCount` should be updated.
+    @MainActor
     public func setChildTaskTotalUnitCount(
         _ newChildTotalUnitCount: Int64,
         forChildTask key: ChildTaskKey
@@ -85,6 +85,7 @@ extension ProgressManager {
     /// - Parameters:
     ///   - completedUnitCount: The new count of completed units for the child task associated with the provided key.
     ///   - key: The key of a child task to update.
+    @MainActor
     public func setCompletedUnitCount(
         _ completedUnitCount: Int64,
         forChildTask key: ChildTaskKey
@@ -96,6 +97,7 @@ extension ProgressManager {
     /// - Parameters:
     ///   - newlyCompletedUnitCountToAdd: A count of completed units to add to the current value of the child task associated with the provided key.
     ///   - key: The key of a child task to update.
+    @MainActor
     public func addToCompletedUnitCount(
         _ newlyCompletedUnitCountToAdd: Int64,
         forChildTask key: ChildTaskKey
@@ -108,6 +110,7 @@ extension ProgressManager {
     ///   - key: The key of a child task to update.
     ///   - updateClosure: A closure that should return an updated current count of completed units.
     ///   - currentValue: The current count of completed units.
+    @MainActor
     public func updateCompletedUnitCount(
         forChildTask key: ChildTaskKey,
         updateClosure: (_ currentValue: Int64) -> Int64

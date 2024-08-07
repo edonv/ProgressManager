@@ -7,19 +7,14 @@ final class ProgressManagerTests: XCTestCase {
         case step1 = 1, step2 = 2, step3 = 3
     }
     
-    private var dummyManager: ProgressManager<Suboperations>!
-    
-    @MainActor
-    override func setUp() {
-        self.dummyManager = ProgressManager(Suboperations.self, childTaskUnitCounts: [
-            .step1: 3,
-            .step2: 2,
-            .step3: 1
-        ], childTaskUnitCountsInParent: [
-            .step1: 2,
-            .step3: 3
-        ])
-    }
+    private let dummyManager = ProgressManager(Suboperations.self, childTaskUnitCounts: [
+        .step1: 3,
+        .step2: 2,
+        .step3: 1
+    ], childTaskUnitCountsInParent: [
+        .step1: 2,
+        .step3: 3
+    ])
     
     @MainActor
     func testInit() throws {
