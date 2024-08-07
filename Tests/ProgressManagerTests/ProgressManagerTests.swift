@@ -25,6 +25,12 @@ final class ProgressManagerTests: XCTestCase {
     }
     
     func testProgressReporting() async throws {
+//        dummyManager.setChildTaskTotalUnitCount(0, forChildTask: .step1)
+        print(dummyManager[.step3]?.fractionCompleted)
+        dummyManager.setCompletedUnitCount(0, forChildTask: .step3)
+        dummyManager.setChildTaskTotalUnitCount(5, forChildTask: .step3)
+        print(dummyManager[.step3]?.fractionCompleted)
+        
         let fractionCompletedPub = dummyManager.fractionCompletedPublisher
             .sink { progress in
                 print("Overall progress (fraction): \(progress)")
@@ -36,11 +42,13 @@ final class ProgressManagerTests: XCTestCase {
         
         await withThrowingTaskGroup(of: Void.self) { taskGroup in
             for step in Suboperations.allCases {
-                taskGroup.addTask {
-                    let count = self.dummyManager[step]?.totalUnitCount ?? 1
-                    for _ in 0..<count {
-                        _ = try await Task.sleep(nanoseconds: UInt64(1000000000 * step.rawValue))
-                        self.dummyManager.addToCompletedUnitCount(1, forChildTask: step)
+                if self.dummyManager[step]?.completedUnitCount != self.dummyManager[step]?.totalUnitCount {
+                    taskGroup.addTask {
+                        let count = await self.dummyManager[step]?.totalUnitCount ?? 1
+                        for _ in 0..<count {
+                            _ = try await Task.sleep(nanoseconds: UInt64(1000000000 * step.rawValue))
+                            await self.dummyManager.addToCompletedUnitCount(1, forChildTask: step)
+                        }
                     }
                 }
             }
