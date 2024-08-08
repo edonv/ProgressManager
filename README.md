@@ -21,11 +21,11 @@ enum ProgressSteps: Hashable {
 let progress = ProgressManager(
     ProgressSteps.self,
     childTaskUnitCounts: [
-        // 1 unit of this task must be completed for it to be consiedered "complete" by the parent
+        // 1 unit of this task must be completed for it to be considered "complete" by the parent
         .importantStep: 1,
-        // 1 unit of this task must be completed for it to be consiedered "complete" by the parent
+        // 1 unit of this task must be completed for it to be considered "complete" by the parent
         .smallStep: 1,
-        // 6 units of this task must be completed for it to be consiedered "complete" by the parent
+        // 6 units of this task must be completed for it to be considered "complete" by the parent
         .aMultiUnitStep: 6,
     ],
     childTaskUnitCountsInParent: [
