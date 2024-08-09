@@ -46,7 +46,7 @@ final class ProgressManagerTests: XCTestCase {
             for step in Suboperations.allCases {
                 if self.dummyManager[step]?.completedUnitCount != self.dummyManager[step]?.totalUnitCount {
                     taskGroup.addTask {
-                        let count = await self.dummyManager[step]?.totalUnitCount ?? 1
+                        let count = self.dummyManager[step]?.totalUnitCount ?? 1
                         for _ in 0..<count {
                             _ = try await Task.sleep(nanoseconds: UInt64(1000000000 * step.rawValue))
                             await self.dummyManager.addToCompletedUnitCount(1, forChildTask: step)
