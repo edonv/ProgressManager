@@ -3,18 +3,28 @@ import XCTest
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 final class ProgressManagerTests: XCTestCase {
-    private enum Suboperations: Int, Hashable, CaseIterable {
+    private enum Suboperations: Int, ChildProgressTask, CaseIterable {
         case step1 = 1, step2 = 2, step3 = 3
+        
+        var childUnits: Int64 {
+            switch self {
+            case .step1: 3
+            case .step2: 2
+            case .step3: 1
+            }
+        }
+        
+        var parentUnits: Int64 {
+            switch self {
+            case .step1: 1
+            case .step2: 2
+            case .step3: 3
+            }
+        }
     }
     
-    private let dummyManager = ProgressManager(Suboperations.self, childTaskUnitCounts: [
-        .step1: 3,
-        .step2: 2,
-        .step3: 1
-    ], childTaskUnitCountsInParent: [
-        .step1: 2,
-        .step3: 3
-    ])
+    private let dummyManager = ProgressManager(Suboperations.self)
+//    private let dummyManager: ProgressManager<Suboperations> = .init(childTasks: Set(Suboperations.allCases))
     
     @MainActor
     func testInit() throws {
