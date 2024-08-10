@@ -38,16 +38,16 @@ final class ProgressManagerTests: XCTestCase {
     @MainActor
     func testProgressReporting() async throws {
 //        dummyManager.setChildTaskTotalUnitCount(0, forChildTask: .step1)
-        print(dummyManager[.step3]?.fractionCompleted)
+        print(dummyManager[.step3]?.fractionCompleted as Any)
         dummyManager.setCompletedUnitCount(0, forChildTask: .step3)
         dummyManager.setChildTaskTotalUnitCount(5, forChildTask: .step3)
-        print(dummyManager[.step3]?.fractionCompleted)
+        print(dummyManager[.step3]?.fractionCompleted as Any)
         
-        let fractionCompletedPub = dummyManager.fractionCompletedPublisher
+        let _ = dummyManager.fractionCompletedPublisher
             .sink { progress in
                 print("Overall progress (fraction): \(progress)")
             }
-        let completedUnitCountPub = dummyManager.completedUnitCountPublisher
+        let _ = dummyManager.completedUnitCountPublisher
             .sink { progress in
                 print("Overall progress (counted):  \(progress)")
             }
