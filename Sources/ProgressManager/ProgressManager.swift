@@ -52,19 +52,6 @@ public final class ProgressManager<ChildTask: ChildProgressTask>: Sendable {
 // MARK: - Updating Child Task Progress
 
 extension ProgressManager {
-    /// Sets the `totalUnitCount` on the child task with the provided value. If there isn't a child task associated with the provided key, nothing happens.
-    ///
-    /// This won't change how many units of the ``parent`` `Progress` this child will be associated with.
-    /// - Parameters:
-    ///   - newChildTotalUnitCount: The new `totalUnitCount` for the child task associated with the provided key.
-    ///   - key: The key of the child task whose `totalUnitCount` should be updated.
-    @MainActor
-    public func setChildTaskTotalUnitCount(
-        _ newChildTotalUnitCount: Int64,
-        forChildTask childTask: ChildTask
-    ) {
-        childTasks[childTask]?.totalUnitCount = newChildTotalUnitCount
-    }
     
     /// Sets the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key to the provided value.
     /// - Parameters:
