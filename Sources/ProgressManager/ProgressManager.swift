@@ -52,6 +52,12 @@ public final class ProgressManager<ChildTask: ChildProgressTask>: Sendable {
 // MARK: - Updating Child Task Progress
 
 extension ProgressManager {
+    /// Resets the progress of all child tasks to `0`.
+    @MainActor
+    public func resetAllTasks() {
+        self.childTasks.values
+            .forEach { $0.completedUnitCount = 0 }
+    }
     
     /// Sets the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key to the provided value.
     /// - Parameters:
