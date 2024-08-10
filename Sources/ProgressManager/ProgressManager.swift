@@ -8,60 +8,44 @@
 import Foundation
 
 /// A class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) objects and child `Progress` objects just a bit more straightforward and easy to work with.
-public final class ProgressManager<ChildTaskKey: Hashable> {
+public final class ProgressManager<ChildTask: ChildProgressTask>: Sendable {
     /// The primary [`Progress`](https://developer.apple.com/documentation/foundation/progress) object.
     public let parent: Progress
     
     /// A `Dictionary` used to store child `Progress` objects.
-    public let childTasks: [ChildTaskKey: Progress]
+    public let childTasks: [ChildTask: Progress]
     
+    private let childTasksInfo: Set<ChildTask>
     
     /// Creates a new ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
     /// - Parameters:
-    ///   - childTaskUnitCounts: A `Dictionary` describing how many units need to be completed within each child task.
-    ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
+    ///   - type: The generic type for the child tasks. If the type can be inferred from the context, this parameter can be omitted.
+    ///   - childTasks: A unique unordered `Set` of child tasks that make up the primary `Progress` operation.
     public init(
-        childTaskUnitCounts: [ChildTaskKey: Int64],
-        childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil
+        _ type: ChildTask.Type = ChildTask.self,
+        childTasks: Set<ChildTask>
     ) {
-        let totalParentUnitCount: Int64 = childTaskUnitCounts.reduce(into: 0) { updatingUnitCount, countKVP in
-            updatingUnitCount += childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value
-        }
+        self.childTasksInfo = childTasks
+        
+        let totalParentUnitCount: Int64 = childTasks
+            .reduce(into: 0) { $0 += $1.parentUnits }
         
         self.parent = Progress(totalUnitCount: totalParentUnitCount)
         
-        self.childTasks = childTaskUnitCounts.reduce(into: [:]) { [parent] dict, countKVP in
-            dict[countKVP.key] = Progress(
-                totalUnitCount: countKVP.value,
+        self.childTasks = childTasks.reduce(into: [:]) { [parent] dict, task in
+            dict[task] = Progress(
+                totalUnitCount: task.childUnits,
                 parent: parent,
-                pendingUnitCount: childTaskUnitCountsInParent?[countKVP.key] ?? countKVP.value
+                pendingUnitCount: task.parentUnits
             )
         }
     }
     
-    /// Creates a new ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
-    ///
-    /// - Note: There is no practical difference between this initializer and ``init(childTaskUnitCounts:childTaskUnitCountsInParent:)``. The only difference is that because you enter the generic `ChildTaskKey` type in this one, you can use the keys with dot syntax to get enum cases or constants when filling in the other parameters.
-    /// - Parameters:
-    ///   - type: The type to use as keys for ``childTasks``.
-    ///   - childTaskUnitCounts: A `Dictionary` describing how many of each child task there should be.
-    ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to the same number of units as its value in `childTaskUnitCounts`. The tasks of any missing keys will similarly default to the count in `childTaskUnitCounts`.
-    public convenience init(
-        _ type: ChildTaskKey.Type,
-        childTaskUnitCounts: [ChildTaskKey: Int64],
-        childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil
-    ) {
-        self.init(
-            childTaskUnitCounts: childTaskUnitCounts,
-            childTaskUnitCountsInParent: childTaskUnitCountsInParent
-        )
-    }
-    
     /// An easy way to acccess the child `Progress` objects stored in ``childTasks``.
-    /// - Parameter childKey: The key associated with the child `Progress` object to return.
+    /// - Parameter child: The key associated with the child `Progress` object to return.
     /// - Returns: The child `Progress` object associated with the provided key, if there is one. Otherwise, `nil`.
-    public subscript(_ childKey: ChildTaskKey) -> Progress? {
-        childTasks[childKey]
+    public subscript(_ child: ChildTask) -> Progress? {
+        childTasks[child]
     }
 }
 
@@ -77,9 +61,9 @@ extension ProgressManager {
     @MainActor
     public func setChildTaskTotalUnitCount(
         _ newChildTotalUnitCount: Int64,
-        forChildTask key: ChildTaskKey
+        forChildTask childTask: ChildTask
     ) {
-        childTasks[key]?.totalUnitCount = newChildTotalUnitCount
+        childTasks[childTask]?.totalUnitCount = newChildTotalUnitCount
     }
     
     /// Sets the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key to the provided value.
@@ -89,9 +73,9 @@ extension ProgressManager {
     @MainActor
     public func setCompletedUnitCount(
         _ completedUnitCount: Int64,
-        forChildTask key: ChildTaskKey
+        forChildTask childTask: ChildTask
     ) {
-        childTasks[key]?.completedUnitCount = completedUnitCount
+        childTasks[childTask]?.completedUnitCount = completedUnitCount
     }
     
     /// Updates the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key by adding the provided value to the current value.
@@ -101,9 +85,9 @@ extension ProgressManager {
     @MainActor
     public func addToCompletedUnitCount(
         _ newlyCompletedUnitCountToAdd: Int64,
-        forChildTask key: ChildTaskKey
+        forChildTask childTask: ChildTask
     ) {
-        childTasks[key]?.completedUnitCount += newlyCompletedUnitCountToAdd
+        childTasks[childTask]?.completedUnitCount += newlyCompletedUnitCountToAdd
     }
     
     /// Updates the [`completedUnitCount`](https://developer.apple.com/documentation/foundation/progress/1407934-completedunitcount) property of the child task with the associated key by calling the provided closure.
@@ -113,50 +97,104 @@ extension ProgressManager {
     ///   - currentValue: The current count of completed units.
     @MainActor
     public func updateCompletedUnitCount(
-        forChildTask key: ChildTaskKey,
+        forChildTask childTask: ChildTask,
         updateClosure: (_ currentValue: Int64) -> Int64
     ) {
-        guard let childProgress = childTasks[key] else { return }
+        guard let childProgress = childTasks[childTask] else { return }
         childProgress.completedUnitCount = updateClosure(childProgress.completedUnitCount)
     }
 }
 
-// MARK: - Sendable Conformance
+// MARK: - Misc Extra Properties
 
-extension ProgressManager: Sendable where ChildTaskKey: Sendable {}
+extension ProgressManager {
+    /// An optional value that represents the time remaining, in seconds.
+    ///
+    /// When this is set and the `ProgressManager` is used in a `ProgressView`, the label will be automatically updated with this information.
+    ///
+    /// This is displayed in the format of "x hours, y minutes, z seconds remaining" (excluding any components not needed).
+    ///
+    /// > Note: Though it will not display any units smaller than a second (it rounds to the nearest second), using `Double` is more convenient for doing multiplication/division without having to cast anything.
+    public var estimatedTimeRemaining: Double? {
+        get {
+            self.parent.userInfo[.estimatedTimeRemainingKey] as? Double
+        } set {
+            self.parent.setUserInfoObject(newValue, forKey: .estimatedTimeRemainingKey)
+        }
+    }
+    
+    /// Tells the underlying `Progress` that it's referring to a specific kind of file-related operation.
+    ///
+    /// When this is used with a non-`nil` value and the `ProgressManager` is used in a `ProgressView`, the label will be automatically updated with relevant information.
+    ///
+    /// Passing `nil` tells the underlying `Progress` that its related operation is not related to files processing.
+    public func setFileOperationKind(_ kind: Progress.FileOperationKind?) {
+        if let kind {
+            self.parent.kind = .file
+            self.parent.setUserInfoObject(kind, forKey: .fileOperationKindKey)
+        } else {
+            self.parent.kind = nil
+            self.parent.setUserInfoObject(nil, forKey: .fileOperationKindKey)
+        }
+    }
+    
+    /// Tells the underlying `Progress` that it's referring to a general file-related operation.
+    ///
+    /// When this is used with a non-`nil` value and the `ProgressManager` is used in a `ProgressView`, the label will be automatically updated with relevant information.
+    public func setFileOperationKind() {
+        self.parent.kind = .file
+    }
+    
+    /// Tells the underlying `Progress` the total number of files for a file progress object.
+    ///
+    /// When this is used with a non-`nil` value and the `ProgressManager` is used in a `ProgressView`, the label will be automatically updated with relevant information.
+    ///
+    /// > Important: This only affects the label if ``setFileOperationKind(_:)`` (or ``setFileOperationKind()``) is used to indicate a file-related operation.
+    ///
+    /// Passing `nil` tells the underlying `Progress` that its related operation is not related to files processing.
+    public func setTotalFileCount(_ count: Int?) {
+        self.parent.fileTotalCount = count
+    }
+    
+    /// Tells the underlying `Progress` the speed of data processing, in bytes per second.
+    ///
+    /// When this is used with a non-`nil` value and the `ProgressManager` is used in a `ProgressView`, the label will be automatically updated with relevant information.
+    ///
+    /// > Important: This only affects the label if ``setFileOperationKind(_:)`` is used to set a *specific* kind of file operation, not just ``setFileOperationKind()``.
+    ///
+    /// Passing `nil` tells the underlying `Progress` that its related operation is not related to files processing.
+    public func setFileOperationThroughput(_ throughput: Int?) {
+        self.parent.setUserInfoObject(throughput, forKey: .throughputKey)
+    }
+    
+    /// Overrides the primary descriptive text of a `Progress` view attached to this `ProgressManager`.
+    public var primaryLabelText: String? {
+        get {
+            self.parent.localizedDescription
+        } set {
+            self.parent.localizedDescription = newValue
+        }
+    }
+    
+    /// Overrides the secondary descriptive text of a `Progress` view attached to this `ProgressManager`.
+    public var secondaryLabelText: String? {
+        get {
+            self.parent.localizedAdditionalDescription
+        } set {
+            self.parent.localizedAdditionalDescription = newValue
+        }
+    }
+}
 
 // MARK: - CaseIterable Key Init
 
-extension ProgressManager where ChildTaskKey: CaseIterable {
-    /// Creates an empty ``ProgressManager``, automatically creating `Progress` objects to manage child tasks.
-    ///
-    /// This initializer creates the `ProgressManager` from all cases of `ChildTaskKey`, each child task starting with `totalUnitCount` values of `1`, as well as setting every child task as fully complete. ``setChildTaskTotalUnitCount(_:forChildTask:)`` can be used after the fact to set `totalUnitCount`. This initializer is intended to be used when info on child tasks might not be available yet.
+extension ProgressManager where ChildTask: CaseIterable {
+    /// Creates a new ``ProgressManager`` from a `CaseIterable` `ChildTask` type, automatically creating `Progress` objects to manage child tasks.
     /// - Parameters:
-    ///   - type: The type to use as keys for ``childTasks``.
-    ///   - childTaskUnitCountsInParent: A `Dictionary` describing how many units each child task is worth in the parent `Progress`. If the parameter is `nil`, all child tasks will default to `1`. The tasks of any missing keys will similarly default to `1`.
-    public convenience init(
-        _ type: ChildTaskKey.Type,
-        childTaskUnitCountsInParent: [ChildTaskKey: Int64]? = nil
-    ) {
-        // Give all child tasks a total unit count of 1
-        let childTaskUnitCounts: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
-            partialResult[key] = 1
-        }
-        
-        // Set child tasks' associated unit count in the parent, but default to 1
-        let childTaskUnitCountsInParentTweaked: [ChildTaskKey: Int64] = type.allCases.reduce(into: [:]) { partialResult, key in
-            partialResult[key] = childTaskUnitCountsInParent?[key] ?? 1
-        }
-        
-        self.init(
-            childTaskUnitCounts: childTaskUnitCounts,
-            childTaskUnitCountsInParent: childTaskUnitCountsInParentTweaked
-        )
-        
-        // Set all child tasks to be complete
-        for progress in childTasks.values {
-            progress.completedUnitCount = 1
-        }
+    ///   - type: The generic type for the child tasks. If the type can be inferred from the context, this parameter can be omitted.
+    public convenience init(_ type: ChildTask.Type = ChildTask.self) {
+        let allCases = Set(ChildTask.allCases)
+        self.init(childTasks: allCases)
     }
 }
 
@@ -208,8 +246,8 @@ extension ProgressManager {
     /// - Note: This publisher updates continuously as work progresses for the child task.
     /// - Parameter childKey: The key of a child task from which to get a publisher (if such a child task exists).
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func fractionCompletedPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Double?, Never> {
-        if let child = childTasks[childKey] {
+    public func fractionCompletedPublisher(forChildTask childTask: ChildTask) -> AnyPublisher<Double?, Never> {
+        if let child = childTasks[childTask] {
             return child.publisher(for: \.fractionCompleted)
                 .map { $0 as Double? }
                 .eraseToAnyPublisher()
@@ -224,8 +262,8 @@ extension ProgressManager {
     /// If there isn't a child task matching the key, the returned `Publisher` will return `nil` then finish.
     /// - Parameter childKey: The key of a child task from which to get a publisher (if such a child task exists).
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func totalUnitCountPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Int64?, Never> {
-        if let child = childTasks[childKey] {
+    public func totalUnitCountPublisher(forChildTask childTask: ChildTask) -> AnyPublisher<Int64?, Never> {
+        if let child = childTasks[childTask] {
             return child.publisher(for: \.totalUnitCount)
                 .map { $0 as Int64? }
                 .eraseToAnyPublisher()
@@ -241,8 +279,8 @@ extension ProgressManager {
     /// - Note: This publisher only updates when the child task is `100%` complete.
     /// - Parameter childKey: The key of a child task from which to get a publisher (if such a child task exists).
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public func completedUnitCountPublisher(forChild childKey: ChildTaskKey) -> AnyPublisher<Int64?, Never> {
-        if let child = childTasks[childKey] {
+    public func completedUnitCountPublisher(forChildTask childTask: ChildTask) -> AnyPublisher<Int64?, Never> {
+        if let child = childTasks[childTask] {
             return child.publisher(for: \.completedUnitCount)
                 .map { $0 as Int64? }
                 .eraseToAnyPublisher()
