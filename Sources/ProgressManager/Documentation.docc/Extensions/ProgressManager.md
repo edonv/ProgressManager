@@ -85,7 +85,7 @@ And that's it! If you need more granular control, you can access the child tasks
 
 ### Updating Child Task Progress
 
-- ``setChildTaskTotalUnitCount(_:forChildTask:)``
+- ``resetAllTasks()``
 - ``setCompletedUnitCount(_:forChildTask:)``
 - ``addToCompletedUnitCount(_:forChildTask:)``
 - ``updateCompletedUnitCount(forChildTask:updateClosure:)``
