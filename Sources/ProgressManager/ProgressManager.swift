@@ -53,7 +53,6 @@ public final class ProgressManager<ChildTask: ChildProgressTask>: Sendable {
 
 extension ProgressManager {
     /// Resets the progress of all child tasks to `0`.
-    @MainActor
     public func resetAllTasks() {
         self.childTasks.values
             .forEach { $0.completedUnitCount = 0 }
@@ -63,7 +62,6 @@ extension ProgressManager {
     /// - Parameters:
     ///   - completedUnitCount: The new count of completed units for the child task associated with the provided key.
     ///   - key: The key of a child task to update.
-    @MainActor
     public func setCompletedUnitCount(
         _ completedUnitCount: Int64,
         forChildTask childTask: ChildTask
@@ -75,7 +73,6 @@ extension ProgressManager {
     /// - Parameters:
     ///   - newlyCompletedUnitCountToAdd: A count of completed units to add to the current value of the child task associated with the provided key.
     ///   - key: The key of a child task to update.
-    @MainActor
     public func addToCompletedUnitCount(
         _ newlyCompletedUnitCountToAdd: Int64,
         forChildTask childTask: ChildTask
@@ -88,7 +85,6 @@ extension ProgressManager {
     ///   - key: The key of a child task to update.
     ///   - updateClosure: A closure that should return an updated current count of completed units.
     ///   - currentValue: The current count of completed units.
-    @MainActor
     public func updateCompletedUnitCount(
         forChildTask childTask: ChildTask,
         updateClosure: (_ currentValue: Int64) -> Int64
