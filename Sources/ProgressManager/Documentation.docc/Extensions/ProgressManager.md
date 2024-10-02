@@ -2,7 +2,7 @@
 
 ## Overview
 
-`ProgressManager` is a class to make dealing with [`Progress`](https://developer.apple.com/documentation/foundation/progress) and its child tasks just a bit more straightforward and easy. Why use it? It allows for granular but accessible control over the details of a multistep operation, while automatically mirroring its state in views like [`ProgressView`](https://developer.apple.com/documentation/swiftui/progressview), [`UIProgressView`](https://developer.apple.com/documentation/uikit/uiprogressview), and [`NSProgressIndicator`](https://developer.apple.com/documentation/appkit/nsprogressindicator).
+ProgressManager` allows for granular but accessible control over the details of a multistep operation, while automatically mirroring its state in views like [`ProgressView`](https://developer.apple.com/documentation/swiftui/progressview), [`UIProgressView`](https://developer.apple.com/documentation/uikit/uiprogressview), and [`NSProgressIndicator`](https://developer.apple.com/documentation/appkit/nsprogressindicator).
 
 ## How to Use
 
